@@ -10,7 +10,7 @@ function callServer() {
 export function EmailVerificationHistory() {
   return (
     <div>
-      <h1>Email Verification History</h1>
+      <h1>Email Verification History 1</h1>
       {callServer()}
     </div>
   );
