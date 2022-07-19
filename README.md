@@ -1,4 +1,4 @@
-# Primarybyte Backend Interview
+# Primarybyte Frontend Interview
 
 ### Description:
 There are react frontend application with express backend application.
