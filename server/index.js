@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const mysql = require('mysql');
 const axios = require('axios')
+const {response} = require("express");
 
 
 const app = express();
@@ -23,27 +24,36 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/email-verifications', (req, res) => {
-    pool.query(`select * from email_verification`, (err, results) => {
-        if (err) {
-            return res.send(err);
-        } else {
-            return res.send(results);
-        }
-    });
+    pool.query(
+        `SELECT email_verification.*, email.email
+        FROM email_verification 
+        JOIN email ON email.id=email_verification.email_id
+        ORDER BY email.last_verified_at`,
+        (err, results) => {
+            if (err) {
+                return res.send(err);
+            } else {
+                return res.send(results);
+            }
+        });
 });
 
 app.post('/email-verification', (req, res) => {
     axios.post(
-            PROSPECT_CONFIG.baseUrl + '/api/v1/email-verifier',
-            {email: [req.body.email]},
-            {headers: {'Authorization': 'Bearer ' + PROSPECT_CONFIG.apiKey}}
-        )
-        .then(function (response) {
-            return res.send(response);
-        })
-        .catch(function (error) {
-            return res.send(error);
-        })
+        PROSPECT_CONFIG.baseUrl + '/api/v1/email-verifier',
+        {email: [req.body.email]},
+        {headers: {'Authorization': 'Bearer ' + PROSPECT_CONFIG.apiKey}}
+    )
+    .then(function (response) {
+        pool.query('INSERT INTO email (email) VALUES (?)', [req.body.email], function (err, result) {
+            pool.query('INSERT INTO email_verification (email_id, result) VALUES (?, ?)', [result.insertId, 'success'], function (err, result) {
+                return res.send(response);
+            });
+        });
+    })
+    .catch(function (error) {
+        return res.send(error);
+    })
 })
 
 app.listen(8000, '0.0.0.0', () => {
