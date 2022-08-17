@@ -27,6 +27,12 @@ React frontend application allows customer:
 Application infrastructure is launching with docker-compose.yml: `docker-compose up -d`.
 Postman Collection is available in [`./postman`](./postman/Email%20Verification%20Api.postman_collection.json) 
 
+### Getting Started
+#### Installation
+1. Copy `.env.dist` > `.env`
+2. Fill `PROSPECT_API_KEY`, `PROSPECT_BASE_URL` with given values.
+3. Run `docker-compose up -d`
+
 ### Tasks
 1. Fill result saving class with necessary fields. [backend]
 2. Introduce [Material UI](https://mui.com/). Replace parts of implemented components with Material UI components to fit the mockups.
