@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const mysql = require('mysql');
 const axios = require('axios')
-const {response} = require("express");
 
 
 const app = express();
@@ -38,16 +37,36 @@ app.get('/email-verifications', (req, res) => {
         });
 });
 
-app.post('/email-verification', (req, res) => {
+app.post('/email-verification', (req, res) => { // TODO: don't insert new email if it is already exists
     axios.post(
         PROSPECT_CONFIG.baseUrl + '/api/v1/email-verifier',
-        {email: [req.body.email]},
-        {headers: {'Authorization': 'Bearer ' + PROSPECT_CONFIG.apiKey}}
+        { email: [req.body.email] },
+        { headers: { 'Authorization': 'Bearer ' + PROSPECT_CONFIG.apiKey } },
     )
     .then(function (response) {
         pool.query('INSERT INTO email (email) VALUES (?)', [req.body.email], function (err, result) {
-            pool.query('INSERT INTO email_verification (email_id, result) VALUES (?, ?)', [result.insertId, 'success'], function (err, result) {
-                return res.send(response);
+            const {
+                result: responseResult, verifiedAt, isPrivate, catchall,
+                disposable, freemail, rolebased, dnsValidMx,
+                smtpValid, domainBanned, domainPrivacy, mailboxExists,
+            } = response.data.result[0];
+
+            pool.query(
+                `INSERT INTO email_verification (
+                    email_id, result, verified_at, is_private,
+                    is_catchall, is_disposable, is_freemail, is_rolebased,
+                    is_dns_valid_mx, is_smtp_valid, is_domain_banned, is_domain_privacy,
+                    mailbox_exists)
+                 VALUES (?, ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?)`,
+                [result.insertId, responseResult, verifiedAt, isPrivate,
+                catchall, disposable, freemail, rolebased,
+                dnsValidMx, smtpValid, domainBanned, domainPrivacy,
+                mailboxExists],
+                function (error, result) {
+                    return res.send({ result, error });
             });
         });
     })

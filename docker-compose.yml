@@ -9,6 +9,9 @@ x-common-variables: &common-variables
   PROSPECT_BASE_URL: ${PROSPECT_BASE_URL}
 
 services:
+  db:
+    platform: linux/x86_64
+    image: mysql:5.7
   mysql:
     image: mysql:5.7
     container_name: primarybyte_mysql
